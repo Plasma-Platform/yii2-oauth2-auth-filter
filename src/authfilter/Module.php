@@ -41,7 +41,7 @@ class Module extends \yii\base\Module
      */
     public $testMode = false;
 
-    public $tokenInfoEndpoint ='oauth/token';
+    public $tokenInfoEndpoint ='oauth/tokeninfo';
 
     public $tokenIssueEndpoint = 'oauth/token';
 
