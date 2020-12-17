@@ -5,4 +5,4 @@
 Yii2 module to check validity of oauth2 token and scope access in microservices
 
 [CHANGELOG]: ./CHANGELOG.md
-[version-badge]: https://img.shields.io/badge/version-1.1.0-blue.svg
+[version-badge]: https://img.shields.io/badge/version-1.1.1-blue.svg
