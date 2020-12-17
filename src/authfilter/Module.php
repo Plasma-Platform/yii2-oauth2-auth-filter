@@ -4,6 +4,7 @@ namespace indigerd\oauth2\authfilter;
 
 use indigerd\oauth2\authfilter\client\ClientInterface;
 use indigerd\oauth2\authfilter\components\TestHelper;
+use Yii;
 use yii\base\InvalidConfigException;
 use yii\caching\CacheInterface;
 use yii\di\Instance;
