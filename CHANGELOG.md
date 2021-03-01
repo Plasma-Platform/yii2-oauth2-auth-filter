@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.1.2] - 2020-12-17
+### Fixed
+- disable request headers
+- disable curl log in stderr
+
 ## [1.1.1] - 2020-12-17
 ### Fixed
 - include name space Yii
