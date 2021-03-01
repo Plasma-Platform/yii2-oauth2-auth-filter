@@ -8,8 +8,7 @@ class Curl implements ClientInterface
     {
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_VERBOSE, 1);
-        curl_setopt($ch, CURLOPT_HEADER, 1);
+        curl_setopt($ch, CURLOPT_VERBOSE, 0);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
 
         $h = [];
@@ -33,13 +32,9 @@ class Curl implements ClientInterface
             throw new \Exception($error);
         }
 
-        $headerSize = curl_getinfo($ch,CURLINFO_HEADER_SIZE);
-        $header     = substr($result, 0, $headerSize);
-        $body       = substr($result, $headerSize);
-
         $response = new \yii\web\Response;
         $response->setStatusCode(curl_getinfo($ch,CURLINFO_HTTP_CODE));
-        $response->content = $body;
+        $response->content = $result;
         return $response;
     }
 }
