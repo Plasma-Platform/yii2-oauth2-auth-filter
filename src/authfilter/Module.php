@@ -145,7 +145,7 @@ class Module extends \yii\base\Module
     public function validateRequest(Request $request)
     {
         if ($this->testMode) {
-            return json_decode(TestHelper::getTokenInfo()->content, true);
+            return json_decode(TestHelper::getTokenInfo(true)->content, true);
         }
         $accessToken = $this->determineAccessToken($request);
 
@@ -232,7 +232,7 @@ class Module extends \yii\base\Module
     public function requestAccessByRefreshToken($refresh_token, $scope = '', $rawResponse = false)
     {
         if ($this->testMode) {
-            return TestHelper::getTokenInfo();
+            return TestHelper::getTokenInfo($rawResponse);
         }
         if (empty($this->clientId)) {
             throw new InvalidConfigException('Client ID not configured');
