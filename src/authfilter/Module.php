@@ -190,7 +190,7 @@ class Module extends \yii\base\Module
     public function requestAccessToken($username, $password, $scope = '', $rawResponse = false, $grantType = 'password')
     {
         if ($this->testMode) {
-            return TestHelper::getTokenInfo();
+            return TestHelper::getTokenInfo($rawResponse);
         }
         if (empty($this->clientId)) {
             throw new InvalidConfigException('Client ID not configured');
