@@ -1,7 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## [1.1.2] - 2020-12-17
+## [1.1.3] - 2021-04-15
+### Fixed
+- rawResponse on test run
+
+## [1.1.2] - 2021-03-21
 ### Fixed
 - disable request headers
 - disable curl log in stderr
