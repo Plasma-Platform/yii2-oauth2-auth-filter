@@ -58,9 +58,12 @@ class Module extends \yii\base\Module
     /** @var int $cacheTtl */
     public $cacheTtl = 60;
 
+    /** @var string $prefixCacheAccessToken */
+    public $prefixCacheAccessToken = 'access_token_';
 
     /**
      * @param ClientInterface $httpClient
+     *
      * @return $this
      */
     public function setHttpClient(ClientInterface $httpClient)
@@ -79,18 +82,12 @@ class Module extends \yii\base\Module
             throw new InvalidConfigException('Auth server url not configured');
         }
         $this->setHttpClient(new $this->httpClientClass);
-
-        if ($this->cache !== false && $this->cache !== null) {
-            try {
-                $this->cache = Instance::ensure($this->cache, 'yii\caching\CacheInterface');
-            } catch (InvalidConfigException $e) {
-                Yii::warning('Unable to use cache for URL manager: ' . $e->getMessage());
-            }
-        }
+        $this->initCacheInstance();
     }
 
     /**
      * @param Request $request
+     *
      * @return string
      * @throws HttpException
      */
@@ -117,6 +114,7 @@ class Module extends \yii\base\Module
 
     /**
      * @param Response $response
+     *
      * @return array
      * @throws HttpException
      */
@@ -130,7 +128,11 @@ class Module extends \yii\base\Module
             $error = !empty($tokenInfo['error'])
                 ? $tokenInfo['error']
                 : 'Invalid access token';
-            throw new HttpException($response->statusCode, $error, $response->statusCode);
+            throw new HttpException(
+                $response->statusCode,
+                $error,
+                $response->statusCode
+            );
         }
 
         return $tokenInfo;
@@ -139,6 +141,7 @@ class Module extends \yii\base\Module
 
     /**
      * @param Request $request
+     *
      * @return array
      * @throws HttpException
      */
@@ -156,7 +159,10 @@ class Module extends \yii\base\Module
             }
         }
         try {
-            $url = rtrim($this->authServerUrl, '/') . '/' . ltrim($this->tokenInfoEndpoint, '/');
+            $url = rtrim($this->authServerUrl, '/') . '/' . ltrim(
+                    $this->tokenInfoEndpoint,
+                    '/'
+                );
             $response = $this->httpClient->sendRequest(
                 'GET',
                 $url,
@@ -167,28 +173,56 @@ class Module extends \yii\base\Module
                 ]
             );
         } catch (\Exception $e) {
-            throw new HttpException(503, 'Authentication server not available', 503);
+            throw new HttpException(
+                503,
+                'Authentication server not available',
+                503
+            );
         }
 
         $afterValidate = $this->validateAuthServerResponce($response);
 
         if ($this->cache instanceof CacheInterface) {
-            $this->cache->set($accessToken, json_encode($afterValidate), $this->cacheTtl);
+            $this->cache->set(
+                $accessToken,
+                json_encode($afterValidate),
+                $this->cacheTtl
+            );
         }
         return $afterValidate;
     }
+
+    private function initCacheInstance()
+    {
+        if ($this->cache !== false && $this->cache !== null && !($this->cache instanceof CacheInterface)) {
+            try {
+                $this->cache = Instance::ensure($this->cache, 'yii\caching\CacheInterface');
+            } catch (InvalidConfigException $e) {
+                Yii::warning('Unable to use cache for URL manager: ' . $e->getMessage());
+            }
+        }
+    }
+
 
     /**
      * @param string $username
      * @param string $password
      * @param string $scope
      * @param bool $rawResponse
+     *
      * @return array|string
      * @throws HttpException
      * @throws InvalidConfigException
      */
-    public function requestAccessToken($username, $password, $scope = '', $rawResponse = false, $grantType = 'password')
-    {
+    public function requestAccessToken(
+        $username,
+        $password,
+        $scope = '',
+        $rawResponse = false,
+        $grantType = 'password',
+        $cacheTtl = 0
+    ) {
+        $this->initCacheInstance();
         if ($this->testMode) {
             return TestHelper::getTokenInfo($rawResponse);
         }
@@ -198,19 +232,38 @@ class Module extends \yii\base\Module
         if (empty($this->clientSecret)) {
             throw new InvalidConfigException('Client secret not configured');
         }
+
+        $requestParams = [
+            'grant_type' => $grantType,
+            'client_id' => $this->clientId,
+            'client_secret' => $this->clientSecret,
+            'scope' => $scope,
+            'username' => $username,
+            'password' => $password
+        ];
+
+        $cacheKey = $this->prefixCacheAccessToken . sha1(json_encode($requestParams));
+        if ($this->cache instanceof CacheInterface && $cacheTtl > 0) {
+            $cacheValue = $this->cache->get($cacheKey);
+            if (!empty($cacheValue)) {
+                return $rawResponse
+                    ? $cacheValue
+                    : json_decode(
+                        $cacheValue,
+                        true
+                    );
+            }
+        }
+
         try {
-            $url = rtrim($this->authServerUrl, '/') . '/' . ltrim($this->tokenIssueEndpoint, '/');
+            $url = rtrim($this->authServerUrl, '/') . '/' . ltrim(
+                    $this->tokenIssueEndpoint,
+                    '/'
+                );
             $response = $this->httpClient->sendRequest(
                 'POST',
                 $url,
-                [
-                    'grant_type' => $grantType,
-                    'client_id' => $this->clientId,
-                    'client_secret' => $this->clientSecret,
-                    'scope' => $scope,
-                    'username' => $username,
-                    'password' => $password
-                ],
+                $requestParams,
                 [
                     'Accept' => 'application/json'
                 ]
@@ -218,6 +271,11 @@ class Module extends \yii\base\Module
         } catch (\Exception $e) {
             throw new HttpException(503, 'Authentication server not available');
         }
+
+        if ($this->cache instanceof CacheInterface && $cacheTtl > 0) {
+            $this->cache->set($cacheKey, $response->content, $cacheTtl);
+        }
+
         return $rawResponse ? $response : json_decode($response->content, true);
     }
 
@@ -225,12 +283,16 @@ class Module extends \yii\base\Module
      * @param string $refresh_token
      * @param string $scope
      * @param bool $rawResponse
+     *
      * @return array|string
      * @throws HttpException
      * @throws InvalidConfigException
      */
-    public function requestAccessByRefreshToken($refresh_token, $scope = '', $rawResponse = false)
-    {
+    public function requestAccessByRefreshToken(
+        $refresh_token,
+        $scope = '',
+        $rawResponse = false
+    ) {
         if ($this->testMode) {
             return TestHelper::getTokenInfo($rawResponse);
         }
@@ -241,7 +303,10 @@ class Module extends \yii\base\Module
             throw new InvalidConfigException('Client secret not configured');
         }
         try {
-            $url = rtrim($this->authServerUrl, '/') . '/' . ltrim($this->tokenIssueEndpoint, '/');
+            $url = rtrim($this->authServerUrl, '/') . '/' . ltrim(
+                    $this->tokenIssueEndpoint,
+                    '/'
+                );
             $response = $this->httpClient->sendRequest(
                 'POST',
                 $url,
