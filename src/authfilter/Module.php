@@ -82,19 +82,7 @@ class Module extends \yii\base\Module
             throw new InvalidConfigException('Auth server url not configured');
         }
         $this->setHttpClient(new $this->httpClientClass);
-
-        if ($this->cache !== false && $this->cache !== null) {
-            try {
-                $this->cache = Instance::ensure(
-                    $this->cache,
-                    'yii\caching\CacheInterface'
-                );
-            } catch (InvalidConfigException $e) {
-                Yii::warning(
-                    'Unable to use cache for URL manager: ' . $e->getMessage()
-                );
-            }
-        }
+        $this->initCacheInstance();
     }
 
     /**
@@ -204,6 +192,18 @@ class Module extends \yii\base\Module
         return $afterValidate;
     }
 
+    private function initCacheInstance()
+    {
+        if ($this->cache !== false && $this->cache !== null && !($this->cache instanceof CacheInterface)) {
+            try {
+                $this->cache = Instance::ensure($this->cache, 'yii\caching\CacheInterface');
+            } catch (InvalidConfigException $e) {
+                Yii::warning('Unable to use cache for URL manager: ' . $e->getMessage());
+            }
+        }
+    }
+
+
     /**
      * @param string $username
      * @param string $password
@@ -222,6 +222,7 @@ class Module extends \yii\base\Module
         $grantType = 'password',
         $cacheTtl = 0
     ) {
+        $this->initCacheInstance();
         if ($this->testMode) {
             return TestHelper::getTokenInfo($rawResponse);
         }
