@@ -258,7 +258,7 @@ class Module extends \yii\base\Module
         ];
 
         $cacheKey = $this->prefixCacheAccessToken . sha1(json_encode($requestParams));
-        if ($useCache > 0) {
+        if ($useCache) {
             $cacheValue = $this->getCacheValue($cacheKey);
             if (!empty($cacheValue)) {
                 return $rawResponse ? $cacheValue : json_decode($cacheValue, true);
