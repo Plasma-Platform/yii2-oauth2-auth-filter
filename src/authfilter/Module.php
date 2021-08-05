@@ -152,11 +152,9 @@ class Module extends \yii\base\Module
         }
         $accessToken = $this->determineAccessToken($request);
 
-        if ($this->cache instanceof CacheInterface) {
-            $tokenFromCache = $this->cache->get($accessToken);
-            if (!empty($tokenFromCache)) {
-                return json_decode($tokenFromCache, true);
-            }
+        $tokenFromCache = $this->getCacheValue($accessToken);
+        if (!empty($tokenFromCache)) {
+            return json_decode($tokenFromCache, true);
         }
         try {
             $url = rtrim($this->authServerUrl, '/') . '/' . ltrim(
@@ -181,14 +179,7 @@ class Module extends \yii\base\Module
         }
 
         $afterValidate = $this->validateAuthServerResponce($response);
-
-        if ($this->cache instanceof CacheInterface) {
-            $this->cache->set(
-                $accessToken,
-                json_encode($afterValidate),
-                $this->cacheTtl
-            );
-        }
+        $this->setCacheValue($accessToken, json_encode($afterValidate), $this->cacheTtl);
         return $afterValidate;
     }
 
@@ -203,14 +194,38 @@ class Module extends \yii\base\Module
         }
     }
 
+    /**
+     * @param $key
+     * @return false|mixed|null
+     */
+    private function getCacheValue($key)
+    {
+        if ($this->cache instanceof CacheInterface) {
+            return $this->cache->get($cacheKey);
+        }
+        return null;
+    }
 
     /**
-     * @param string $username
-     * @param string $password
+     * @param $key
+     * @param $value
+     * @param $ttl
+     */
+    private function setCacheValue($key, $value, $ttl)
+    {
+        if ($this->cache instanceof CacheInterface && (int)$ttl > 0) {
+            $this->cache->set($key, $value, $ttl);
+        }
+    }
+
+    /**
+     * @param $username
+     * @param $password
      * @param string $scope
-     * @param bool $rawResponse
-     *
-     * @return array|string
+     * @param false $rawResponse
+     * @param string $grantType
+     * @param false $useCache
+     * @return array|mixed|string[]|Response
      * @throws HttpException
      * @throws InvalidConfigException
      */
@@ -220,7 +235,7 @@ class Module extends \yii\base\Module
         $scope = '',
         $rawResponse = false,
         $grantType = 'password',
-        $cacheTtl = 0
+        $useCache = false
     ) {
         $this->initCacheInstance();
         if ($this->testMode) {
@@ -243,15 +258,10 @@ class Module extends \yii\base\Module
         ];
 
         $cacheKey = $this->prefixCacheAccessToken . sha1(json_encode($requestParams));
-        if ($this->cache instanceof CacheInterface && $cacheTtl > 0) {
-            $cacheValue = $this->cache->get($cacheKey);
+        if ($useCache) {
+            $cacheValue = $this->getCacheValue($cacheKey);
             if (!empty($cacheValue)) {
-                return $rawResponse
-                    ? $cacheValue
-                    : json_decode(
-                        $cacheValue,
-                        true
-                    );
+                return $rawResponse ? $cacheValue : json_decode($cacheValue, true);
             }
         }
 
@@ -272,8 +282,11 @@ class Module extends \yii\base\Module
             throw new HttpException(503, 'Authentication server not available');
         }
 
-        if ($this->cache instanceof CacheInterface && $cacheTtl > 0) {
-            $this->cache->set($cacheKey, $response->content, $cacheTtl);
+        if ($useCache) {
+            $tokenData = json_decode($response->content, true);
+            $cacheTtl = (int)($tokenData['expires_in'] ?? 0);
+            $cacheTtl = $cacheTtl - 60;
+            $this->setCacheValue($cacheKey, $response->content, $cacheTtl);
         }
 
         return $rawResponse ? $response : json_decode($response->content, true);
