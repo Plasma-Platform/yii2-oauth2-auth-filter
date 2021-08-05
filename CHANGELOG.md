@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.2.1] - 2021-08-03
+### Updated
+- get ttl for cache access token from response service-auth
+
 ## [1.2] - 2021-08-03
 ### Added
 - caching access token
