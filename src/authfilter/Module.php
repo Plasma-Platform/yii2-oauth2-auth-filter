@@ -195,10 +195,10 @@ class Module extends \yii\base\Module
     }
 
     /**
-     * @param $key
+     * @param $cacheKey
      * @return false|mixed|null
      */
-    private function getCacheValue($key)
+    private function getCacheValue($cacheKey)
     {
         if ($this->cache instanceof CacheInterface) {
             return $this->cache->get($cacheKey);
