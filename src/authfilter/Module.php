@@ -261,7 +261,7 @@ class Module extends \yii\base\Module
         if ($useCache) {
             $cacheValue = $this->getCacheValue($cacheKey);
             if (!empty($cacheValue)) {
-                return $rawResponse ? $cacheValue : json_decode($cacheValue, true);
+                return $rawResponse ? (new Response(['content' => $cacheValue]))->statusCode(200) : json_decode($cacheValue, true);
             }
         }
 
