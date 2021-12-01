@@ -189,7 +189,7 @@ class Module extends \yii\base\Module
             try {
                 $this->cache = Instance::ensure($this->cache, 'yii\caching\CacheInterface');
             } catch (InvalidConfigException $e) {
-                Yii::warning('Unable to use cache for URL manager: ' . $e->getMessage());
+                Yii::warning('Unable to use cache for Auth filter: ' . $e->getMessage());
             }
         }
     }
