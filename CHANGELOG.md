@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.2.4] - 2021-12-01
+### Updated
+- change error message if not exist cache
+
 ## [1.2.3] - 2021-10-29
 ### Fixed
 - requestAccessToken function response type with use cache
