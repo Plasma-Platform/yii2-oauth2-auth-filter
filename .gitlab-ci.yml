@@ -1,0 +1,11 @@
+stages:
+  - deploy
+
+publish:
+  stage: deploy
+  image: curlimages/curl:latest
+  script: ./publish-package.sh
+  only:
+    - tags
+  tags:
+    - docker-php-do
