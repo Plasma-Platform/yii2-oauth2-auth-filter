@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.2.5] - 2021-12-09
+### Fixed
+- use setStatusCode for yii2 response
+
 ## [1.2.4] - 2021-12-01
 ### Updated
 - change error message if not exist cache
