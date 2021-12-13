@@ -14,13 +14,13 @@ The preferred way to install this extension is through [composer](http://getcomp
 Either run
 
 ```
-composer require indigerd/yii2-oauth2-auth-filter "1.2.5"
+composer require indigerd/yii2-oauth2-auth-filter "1.2.6"
 ```
 
 or add
 
 ```
-"indigerd/yii2-oauth2-auth-filter": "1.2.5"
+"indigerd/yii2-oauth2-auth-filter": "1.2.6"
 ```
 
 to the require section of your `composer.json` file.
@@ -30,4 +30,4 @@ Usage
 -----
 
 [CHANGELOG]: ./CHANGELOG.md
-[version-badge]: https://img.shields.io/badge/version-1.2.5-blue.svg
+[version-badge]: https://img.shields.io/badge/version-1.2.6-blue.svg

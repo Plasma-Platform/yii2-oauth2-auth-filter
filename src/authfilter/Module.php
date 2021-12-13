@@ -7,6 +7,7 @@ use indigerd\oauth2\authfilter\components\TestHelper;
 use Yii;
 use yii\base\InvalidConfigException;
 use yii\caching\CacheInterface;
+use yii\caching\MemCache;
 use yii\di\Instance;
 use yii\web\HttpException;
 use yii\web\Request;
@@ -52,7 +53,7 @@ class Module extends \yii\base\Module
     protected $httpClient;
 
 
-    /** @var yii\caching\MemCache $cache */
+    /** @var MemCache $cache */
     public $cache;
 
     /** @var int $cacheTtl */
@@ -82,7 +83,6 @@ class Module extends \yii\base\Module
             throw new InvalidConfigException('Auth server url not configured');
         }
         $this->setHttpClient(new $this->httpClientClass);
-        $this->initCacheInstance();
     }
 
     /**
@@ -150,8 +150,8 @@ class Module extends \yii\base\Module
         if ($this->testMode) {
             return json_decode(TestHelper::getTokenInfo(true)->content, true);
         }
+        $this->initCacheInstance();
         $accessToken = $this->determineAccessToken($request);
-
         $tokenFromCache = $this->getCacheValue($accessToken);
         if (!empty($tokenFromCache)) {
             return json_decode($tokenFromCache, true);
@@ -237,7 +237,6 @@ class Module extends \yii\base\Module
         $grantType = 'password',
         $useCache = false
     ) {
-        $this->initCacheInstance();
         if ($this->testMode) {
             return TestHelper::getTokenInfo($rawResponse);
         }
@@ -247,6 +246,7 @@ class Module extends \yii\base\Module
         if (empty($this->clientSecret)) {
             throw new InvalidConfigException('Client secret not configured');
         }
+        $this->initCacheInstance();
 
         $requestParams = [
             'grant_type' => $grantType,
@@ -261,7 +261,10 @@ class Module extends \yii\base\Module
         if ($useCache) {
             $cacheValue = $this->getCacheValue($cacheKey);
             if (!empty($cacheValue)) {
-                return $rawResponse ? (new Response(['content' => $cacheValue]))->setStatusCode(200) : json_decode($cacheValue, true);
+                return $rawResponse ? (new Response(['content' => $cacheValue]))->setStatusCode(200) : json_decode(
+                    $cacheValue,
+                    true
+                );
             }
         }
 

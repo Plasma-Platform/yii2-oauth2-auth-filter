@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.2.6] - 2021-12-13
+### Fixed
+- removed the initialization of the cache with init
+
 ## [1.2.5] - 2021-12-09
 ### Fixed
 - use setStatusCode for yii2 response
