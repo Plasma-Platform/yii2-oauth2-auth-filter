@@ -7,7 +7,6 @@ use indigerd\oauth2\authfilter\components\TestHelper;
 use Yii;
 use yii\base\InvalidConfigException;
 use yii\caching\CacheInterface;
-use yii\caching\MemCache;
 use yii\di\Instance;
 use yii\web\HttpException;
 use yii\web\Request;
@@ -53,7 +52,7 @@ class Module extends \yii\base\Module
     protected $httpClient;
 
 
-    /** @var MemCache $cache */
+    /** @var CacheInterface $cache */
     public $cache;
 
     /** @var int $cacheTtl */
