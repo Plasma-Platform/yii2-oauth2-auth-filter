@@ -220,6 +220,18 @@ class Module extends \yii\base\Module
     }
 
     /**
+     * @param $key
+     * @param $value
+     * @param $ttl
+     */
+    private function deleteCacheValue($key)
+    {
+        if ($this->cache instanceof CacheInterface) {
+            $this->cache->delete($key);
+        }
+    }
+
+    /**
      * @param $username
      * @param $password
      * @param string $scope
@@ -350,7 +362,7 @@ class Module extends \yii\base\Module
      * @throws InvalidConfigException
      */
     public function revokeAccessToken(
-        $access_token
+        string $access_token
     ) {
         if ($this->testMode) {
             return;
@@ -375,8 +387,9 @@ class Module extends \yii\base\Module
                     'Authorization' => $access_token
                 ]
             );
+            $this->deleteCacheValue($access_token);
         } catch (\Throwable $e) {
-            throw new HttpException(503, 'Authentication server not available');
+            throw new HttpException(503, $e->getMessage());
         }
     }
 }
