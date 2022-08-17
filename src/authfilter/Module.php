@@ -48,6 +48,8 @@ class Module extends \yii\base\Module
 
     public $tokenIssueEndpoint = 'oauth/token';
 
+    public $tokenRevokeEndpoint = 'oauth/revoke';
+
     /** @var  ClientInterface $httpClient */
     protected $httpClient;
 
@@ -169,7 +171,7 @@ class Module extends \yii\base\Module
                     'Accept' => 'application/json'
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             throw new HttpException(
                 503,
                 'Authentication server not available',
@@ -214,6 +216,18 @@ class Module extends \yii\base\Module
     {
         if ($this->cache instanceof CacheInterface && (int)$ttl > 0) {
             $this->cache->set($key, $value, $ttl);
+        }
+    }
+
+    /**
+     * @param $key
+     * @param $value
+     * @param $ttl
+     */
+    private function deleteCacheValue($key)
+    {
+        if ($this->cache instanceof CacheInterface) {
+            $this->cache->delete($key);
         }
     }
 
@@ -279,7 +293,7 @@ class Module extends \yii\base\Module
                     'Accept' => 'application/json'
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             throw new HttpException(503, 'Authentication server not available');
         }
 
@@ -335,9 +349,47 @@ class Module extends \yii\base\Module
                     'Accept' => 'application/json'
                 ]
             );
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             throw new HttpException(503, 'Authentication server not available');
         }
         return $rawResponse ? $response : json_decode($response->content, true);
+    }
+
+    /**
+     * @param string $access_token
+     * @return void
+     * @throws HttpException
+     * @throws InvalidConfigException
+     */
+    public function revokeAccessToken(
+        string $access_token
+    ) {
+        if ($this->testMode) {
+            return;
+        }
+        if (empty($this->clientId)) {
+            throw new InvalidConfigException('Client ID not configured');
+        }
+        if (empty($this->clientSecret)) {
+            throw new InvalidConfigException('Client secret not configured');
+        }
+        try {
+            $url = rtrim($this->authServerUrl, '/') . '/' . ltrim(
+                    $this->tokenRevokeEndpoint,
+                    '/'
+                );
+            $this->httpClient->sendRequest(
+                'DELETE',
+                $url,
+                [],
+                [
+                    'Accept' => 'application/json',
+                    'Authorization' => $access_token
+                ]
+            );
+            $this->deleteCacheValue($access_token);
+        } catch (\Throwable $e) {
+            throw new HttpException(503, $e->getMessage());
+        }
     }
 }

@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.2.7] - 2022-08-17
+### Added
+- revoke access token
+
 ## [1.2.6] - 2021-12-13
 ### Fixed
 - removed the initialization of the cache with init
