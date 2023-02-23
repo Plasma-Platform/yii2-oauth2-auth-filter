@@ -14,13 +14,13 @@ The preferred way to install this extension is through [composer](http://getcomp
 Either run
 
 ```
-composer require indigerd/yii2-oauth2-auth-filter "1.2.7"
+composer require indigerd/yii2-oauth2-auth-filter "1.2.8"
 ```
 
 or add
 
 ```
-"indigerd/yii2-oauth2-auth-filter": "1.2.7"
+"indigerd/yii2-oauth2-auth-filter": "1.2.8"
 ```
 
 to the require section of your `composer.json` file.
@@ -28,6 +28,18 @@ to the require section of your `composer.json` file.
 
 Usage
 -----
+```
+'authfilter' => [
+    'class' => 'indigerd\oauth2\authfilter\Module',
+    'authServerUrl' => Yii::getAlias('@serviceAuthUrl'),
+    'clientId' => getenv('AUTH_CLIENT_ID'),
+    'clientSecret' => getenv('AUTH_CLIENT_SECRET'),
+    'cache' => 'cache',
+    'cacheTtl' => (int)getenv('AUTH_CACHE_TTL'),
+    'namespace' => 'webhooks',
+],
+```
+
 
 [CHANGELOG]: ./CHANGELOG.md
-[version-badge]: https://img.shields.io/badge/version-1.2.7-blue.svg
+[version-badge]: https://img.shields.io/badge/version-1.2.8-blue.svg

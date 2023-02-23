@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.2.8] - 2023-02-23
+### Added
+- add namespace
+
 ## [1.2.7] - 2022-08-17
 ### Added
 - revoke access token
