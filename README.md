@@ -28,6 +28,11 @@ to the require section of your `composer.json` file.
 
 Usage
 -----
+If the service starts using `namespace`, then scopes without a namespace will not be valid.
+For example, if a project uses the `timelines` scope, after adding `namespace=webhooks`, the new scopes will refer to `webhooks.timelines`.
+
+You also need to remember to add/change the scope in the authorization admin panel, taking into account `namespace`
+
 ```
 'authfilter' => [
     'class' => 'indigerd\oauth2\authfilter\Module',

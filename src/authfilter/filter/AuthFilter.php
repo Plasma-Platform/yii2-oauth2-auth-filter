@@ -66,9 +66,7 @@ class AuthFilter extends ActionFilter
      */
     public function getScope(string $namespace, string $controller, string $action = ''): string
     {
-        $scopeDivider = '.';
-        $scope = trim(implode($scopeDivider, [$controller, $action]), $scopeDivider);
-        return empty($namespace) ? $scope : $namespace . '/' . $scope;
+        return trim(implode($divider, [$namespace, $controller, $action]), $divider);
     }
 
     /**
