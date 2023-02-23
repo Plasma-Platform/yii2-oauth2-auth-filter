@@ -85,14 +85,11 @@ class AuthFilter extends ActionFilter
         $namespace = (string)$server->namespace;
 
         foreach ($tokenInfo['scopes'] as $scope => $scopeDetails) {
-            if (in_array(
-                $scope,
-                [
-                    $this->getScope($namespace, '', ''),
-                    $this->getScope($namespace, $controllerId, ''),
-                    $this->getScope($namespace, $controllerId, $actionId),
-                ]
-            )) {
+            if ($scope === $this->getScope($namespace, $controllerId, '')) {
+                return true;
+            }
+            
+            if ($scope === $this->getScope($namespace, $controllerId, $actionId)) {
                 return true;
             }
         }
