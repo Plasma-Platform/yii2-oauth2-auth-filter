@@ -66,6 +66,7 @@ class AuthFilter extends ActionFilter
      */
     public function getScope(string $namespace, string $controller, string $action = ''): string
     {
+        $divider = '.';
         return trim(implode($divider, [$namespace, $controller, $action]), $divider);
     }
 
@@ -88,7 +89,7 @@ class AuthFilter extends ActionFilter
             if ($scope === $this->getScope($namespace, $controllerId, '')) {
                 return true;
             }
-            
+
             if ($scope === $this->getScope($namespace, $controllerId, $actionId)) {
                 return true;
             }
