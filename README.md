@@ -33,6 +33,8 @@ For example, if a project uses the `timelines` scope, after adding `namespace=we
 
 You also need to remember to add/change the scope in the authorization admin panel, taking into account `namespace`
 
+If you use a scope that is the same as namespace, it gives full access to the service
+
 ```
 'authfilter' => [
     'class' => 'indigerd\oauth2\authfilter\Module',
