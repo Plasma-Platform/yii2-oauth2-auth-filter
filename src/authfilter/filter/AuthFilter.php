@@ -2,10 +2,10 @@
 
 namespace indigerd\oauth2\authfilter\filter;
 
-use Yii;
 use indigerd\oauth2\authfilter\Module;
-use yii\base\ActionFilter;
+use Yii;
 use yii\base\Action;
+use yii\base\ActionFilter;
 use yii\helpers\Inflector;
 use yii\web\ForbiddenHttpException;
 
@@ -26,17 +26,25 @@ class AuthFilter extends ActionFilter
     }
 
     /**
-     * @inheritdoc
+     * @return \yii\base\Module|null
      */
-    public function beforeAction($action)
+    private function getAuthFileterModule()
     {
-        /** @var Action $action*/
         /** @var Module $server */
-        $server = \Yii::$app->getModule(
+        return \Yii::$app->getModule(
             isset(\Yii::$app->params['authFileterModuleName'])
                 ? \Yii::$app->params['authFilterModuleName']
                 : 'authfilter'
         );
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function beforeAction($action)
+    {
+        /** @var Action $action */
+        $server = $this->getAuthFileterModule();
 
         $tokenInfo = $server->validateRequest(\Yii::$app->request);
         $this->authenticate($tokenInfo);
@@ -51,24 +59,42 @@ class AuthFilter extends ActionFilter
     }
 
     /**
+     * @param string $namespace
+     * @param string $controller
+     * @param string $action
+     * @return string
+     */
+    public function getScope(string $namespace, string $controller, string $action = ''): string
+    {
+        $divider = '.';
+        return trim(implode($divider, [$namespace, $controller, $action]), $divider);
+    }
+
+    /**
      * @param Action $action
      * @param array $tokenInfo
      * @return bool
      */
     public function validateScopes(Action $action, array $tokenInfo)
     {
-        if (empty($tokenInfo['scopes'])) {
+        if (empty($tokenInfo['scopes']) || !is_array($tokenInfo['scopes'])) {
             return false;
         }
         $controllerId = Inflector::pluralize($action->controller->id);
-        foreach ($tokenInfo['scopes'] as $scope=>$scopeDetails) {
-            if ($scope == $controllerId) {
+        $actionId = (string)$action->id;
+        $server = $this->getAuthFileterModule();
+        $namespace = (string)$server->namespace;
+
+        foreach ($tokenInfo['scopes'] as $scope => $scopeDetails) {
+            if ($scope === $this->getScope($namespace, $controllerId, '')) {
                 return true;
             }
-            if ($scope == $controllerId .'.' . $action->id) {
+
+            if ($scope === $this->getScope($namespace, $controllerId, $actionId)) {
                 return true;
             }
         }
+
         return false;
     }
 }

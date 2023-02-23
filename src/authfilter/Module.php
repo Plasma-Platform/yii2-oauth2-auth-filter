@@ -63,6 +63,9 @@ class Module extends \yii\base\Module
     /** @var string $prefixCacheAccessToken */
     public $prefixCacheAccessToken = 'access_token_';
 
+    /** @var string $namespace */
+    public $namespace = '';
+
     /**
      * @param ClientInterface $httpClient
      *
